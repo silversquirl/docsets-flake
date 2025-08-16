@@ -23,7 +23,10 @@ mapfile -t filenames < <(curl -sL "$tarball" | tar tz | sed -E 's/.*\/([^.]+)\.x
 
 finished=0
 status() {
-    printf '\r\e[K  %d/%d\r' "$finished" "${#filenames[@]}" >&2
+    fmt='\e[K  %d/%d\r'
+    [ -t 1 ] || fmt='%d/%d\n'
+    # shellcheck disable=SC2059
+    printf "$fmt" "$finished" "${#filenames[@]}" >&2
 }
 
 for name in "${filenames[@]}"; do
