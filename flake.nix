@@ -6,12 +6,12 @@
       builtins.mapAttrs
       (system: pkgs:
         builtins.mapAttrs
-        (name: feed:
+        (name: docset:
           pkgs.fetchzip {
             name = "${name}.docset";
-            inherit (feed) url hash;
+            inherit (docset) url hash;
           })
-        (import ./feeds.nix))
+        (import ./docsets.nix))
       nixpkgs.legacyPackages;
   };
 }
