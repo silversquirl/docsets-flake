@@ -4,7 +4,14 @@
   outputs = {nixpkgs, ...}: {
     packages =
       builtins.mapAttrs
-      (system: pkgs: builtins.mapAttrs (name: pkgs.fetchzip) (import ./feeds.nix))
+      (system: pkgs:
+        builtins.mapAttrs
+        (name: feed:
+          pkgs.fetchzip {
+            name = "${name}.docset";
+            inherit (feed) url hash;
+          })
+        (import ./feeds.nix))
       nixpkgs.legacyPackages;
   };
 }
