@@ -6,14 +6,27 @@
   in {
     packages = forAllSystems (system: pkgs: let
       mkDocset = name: info:
-        pkgs.runCommand "${name}.docset" {
+        pkgs.stdenvNoCC.mkDerivation {
+          name = "${name}.docset";
           src = pkgs.fetchzip {inherit (info) url hash;};
           inherit (info) extra;
-        } ''
-          mkdir -p "$out"
-          cp -rT "$src" "$out"
-          cp -rT "$extra" "$out"
-        '';
+          nativeBuildInputs = [pkgs.sqlite];
+          buildCommand = ''
+            mkdir -p "$out"
+            echo "Copying docset"
+            cp -rT "$src" "$out"
+            echo "Adding icons and metadata"
+            cp -rT "$extra" "$out"
+            echo "Creating search index"
+            cp "$src/Contents/Resources/docSet.dsidx" docSet.dsidx
+            chmod +w docSet.dsidx
+            sqlite3 docSet.dsidx '
+              CREATE INDEX IF NOT EXISTS __zi_name0001 ON searchIndex (name COLLATE NOCASE);
+            '
+            chmod +w "$out/Contents/Resources/docSet.dsidx"
+            cp docSet.dsidx "$out/Contents/Resources/"
+          '';
+        };
     in
       builtins.mapAttrs mkDocset (import ./docsets));
   };
